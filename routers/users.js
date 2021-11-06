@@ -7,6 +7,9 @@ app.use(express.json())
 const models = require("../models/index")
 const users = models.users
 
+const {auth} = require("./login")
+app.use(auth)
+
 app.get("/", async (request, response) => {
     let dataUser = await users.findAll()
     return response.json(dataUser)

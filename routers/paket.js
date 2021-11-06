@@ -7,6 +7,9 @@ app.use(express.json())
 const models = require('../models/index')
 const paket = models.paket
 
+const {auth} = require("./login")
+app.use(auth)
+
 app.get("/", async (request, response) =>{
     let dataPaket = await paket.findAll()
     return response.json(dataPaket)

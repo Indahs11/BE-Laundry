@@ -10,6 +10,10 @@ const models = require("../models/index")
 //memanggil models member
 const member = models.member
 
+const {auth} = require("./login")
+app.use(auth)
+
+
 //endpoint to get all member
 app.get("/", async (request, response) =>{
     let dataMember = await member.findAll()

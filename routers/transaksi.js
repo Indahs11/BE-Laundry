@@ -1,4 +1,4 @@
-const { request } = require("express")
+const { request, response } = require("express")
 const express = require("express")
 const app = express()
 app.use(express.json())
@@ -6,6 +6,9 @@ app.use(express.json())
 const models = require("../models/index")
 const transaksi = models.transaksi
 const detail_transaksi = models.detail_transaksi
+
+const {auth} = require("./login")
+app.use(auth)
 
 app.get("/", async(request, response) => {
     let dataTransaksi = await transaksi.findAll({
@@ -67,7 +70,7 @@ app.post("/", async(request, response) => {
 })
 app.put("/:id_transaksi", (request, response) => {
     //tampung data untuk update ke tabel transaksi
-    let newTransaksi = {
+    let dataTransaksi = {
         id_member : request.body.id_member,
         tgl : request.body.tgl,
         batas_waktu : request.body.batas_waktu,
@@ -81,22 +84,21 @@ app.put("/:id_transaksi", (request, response) => {
     let param = {
         id_transaksi: request.params.id_transaksi
     }
-    transaksi.update(newTransaksi, {where: param})
+    transaksi.update(dataTransaksi, {where: param})
     //setelah berhasil insert data detail transaksi yang lama dihapus berdasarkan id_transaksinya
-    .then(result => {
+    .then(async (result) => {
 
         // hapus data di detail
-        detail_transaksi.destroy({where: param}).then().catch()
+        await detail_transaksi.destroy({where: param})
 
         // ambil nilai dari transaksi_id
-        let newIdTransaksi = result.id_transaksi
         let detail = request.body.detail_transaksi
 
         // proses menyisipkan transaksi_id
         for (let i = 0; i < detail.length; i++) {
             //sebelumnya nilai detail[i] hanya mempunyai id_paket dan qty, maka untuk menambahkan id_transaksi 
             //menggunakan for untuk menambah id_transaksi disetiap objek pada array
-            detail[i].id_transaksi = newIdTransaksi            
+            detail[i].id_transaksi = request.params.id_transaksi            
         }
         detail_transaksi.bulkCreate(detail)
         .then(result => {
@@ -139,4 +141,44 @@ app.delete("/:id_transaksi", (request, response) => {
     })
 })
 
+//endpint untuk mengubah status transkasi
+app.post("/status/:id_transaksi", (request, response) => {
+    let data = {
+        status: request.body.status
+    }
+    let param = {id_transaksi: request.params.id_transaksi}
+    //proses update status transaksi
+    transaksi.update(data, {where: param})
+    .then(result => {
+        return response.json({
+            message: `Data Status Berhasil diubah`
+        })
+    })
+    .catch(error =>{
+        return response.json({
+            message: error.message
+        })
+    })
+})
+
+app.get("/bayar/:id_transaksi", (request, response) => {
+    let param = {id_transaksi: request.params.id_transaksi}
+
+    let data = {
+        //mendapatkan tanggal yang saat ini berjalan
+        tgl_bayar: new Date().toISOString().split("T")[0],
+        dibayar: true
+    }
+    transaksi.update(data, {where: param})
+    .then(result => {
+        return response.json({
+            message: `Transaksi telah berhasil dibayar`
+        })
+    })
+    .catch(error => {
+        return response.json({
+            message: error.message
+        })
+    })
+})
 module.exports = app
