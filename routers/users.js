@@ -44,7 +44,7 @@ app.put("/:id_user", async(request,response) => {
         role: request.body.role
     }
     if(request.body.password){
-        data.password = md5(request.body.password)
+        newUser.password = md5(request.body.password)
     }
     users.update(newUser, {where: param})
     .then(result => {
