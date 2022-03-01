@@ -143,10 +143,10 @@ app.delete("/:id_transaksi", (request, response) => {
 
 //endpint untuk mengubah status transkasi
 app.post("/status/:id_transaksi", (request, response) => {
+    let param = {id_transaksi: request.params.id_transaksi}
     let data = {
         status: request.body.status
     }
-    let param = {id_transaksi: request.params.id_transaksi}
     //proses update status transaksi
     transaksi.update(data, {where: param})
     .then(result => {

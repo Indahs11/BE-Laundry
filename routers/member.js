@@ -10,9 +10,9 @@ const models = require("../models/index")
 //memanggil models member
 const member = models.member
 
+//Validasi Token
 const {auth} = require("./login")
 app.use(auth)
-
 
 //endpoint to get all member
 app.get("/", async (request, response) =>{
